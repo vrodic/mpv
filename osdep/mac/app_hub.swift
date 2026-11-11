@@ -44,9 +44,6 @@ class AppHub: NSObject {
         input = InputHelper()
         log = LogHelper()
         super.init()
-#if HAVE_MACOS_MEDIA_PLAYER
-        remote = RemoteCommandCenter(self)
-#endif
         log.verbose("AppHub initialised")
     }
 
@@ -67,7 +64,14 @@ class AppHub: NSObject {
         }
 
 #if HAVE_MACOS_MEDIA_PLAYER
-        remote?.registerEvents()
+        // RemoteCommandCenter publishes Now Playing info and requests QuickLook
+        // thumbnails of every played file, so only create it when enabled
+        if option?.root.media_controls ?? true {
+            remote = remote ?? RemoteCommandCenter(self)
+            remote?.registerEvents()
+        } else {
+            log.verbose("Media controls disabled, not using RemoteCommandCenter")
+        }
 #endif
 #if HAVE_MACOS_TOUCHBAR
         touchBar = TouchBar(self)
